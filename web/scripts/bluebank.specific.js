@@ -20,8 +20,8 @@ $(window).hashchange(function () {
             });
 
         });
-    } else if (hash === "#transactions") {
-        $("#content").load("transactions.html");
+    } else if (hash === "#history") {
+        $("#content").load("history.html");
     } else if (hash === "#operations") {
         $("#content").load("operations.html", function () {
             $("#deposit-link").click(function () {
@@ -36,7 +36,11 @@ $(window).hashchange(function () {
                 $("#operation-content").load("opt/transfer.html");
                 operationTypeNumber = 3;
             });
+            $("#transfer-link").click();
         });
+    } else if (hash === "#balance") {
+        $("#content").load("balance.html");
+        operationTypeNumber = 4;
     } else {
         window.location.hash = "#register";
     }
@@ -88,6 +92,24 @@ $(document).on("click", "#transfer-button", function () {
             data: formData, // serializes the form's elements.
             success: function (data) {
                 // var parsedData = $.parseJSON(data);
+                console.log("Yep");
+            }
+        });
+
+        e.preventDefault();
+    });
+});
+$(document).on("click", "#balance-button", function () {
+    $("#balance-form").submit(function (e) {
+        var formData = $("#balance-form").serialize();
+        formData += '&operationType=' + operationTypeNumber;
+        console.log(formData);
+        request = $.ajax({
+            type: "POST",
+            url: "OperationServlet",
+            data: formData, // serializes the form's elements.
+            success: function (data) {
+                $("#resultado-saldo").hide().html("<h5>O saldo atual da conta é: " + data + "</h5>").fadeIn("slow");
                 console.log("Yep");
             }
         });

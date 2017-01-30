@@ -30,8 +30,9 @@
                     <h4><strong>Blue Bank</strong></h4>
                     <ul class="list-inline">
                         <li><a href="#register">Cadastro</a></li>
-                        <li><a href="#transactions">Transações</a></li>
+                        <li><a href="#history">Histórico</a></li>
                         <li><a href="#operations">Operações</a></li>
+                        <li><a href="#balance">Saldo</a></li>
                     </ul>
                     <hr />
                     <div id="warning-area" class="alert" style="display: none;">

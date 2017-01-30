@@ -11,4 +11,5 @@ import java.sql.Connection;
 public interface IOperation {
     public Boolean deposit(Account acc, Double value, Connection conn);
     public Boolean transfer(Account firstAcc, Account secondAcc, double value, Connection conn);
+    public Double verifyBalance(Account acc, Connection conn);
 }

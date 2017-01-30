@@ -29,6 +29,7 @@ public class OperationServlet extends HttpServlet {
     public final static int DEPOSIT_OPERATION = 1;
     public final static int WITHDRAWAL_OPERATION = 2;
     public final static int TRANSFER_OPERATION = 3;
+    public final static int BALANCE_OPERATION = 4;
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -73,6 +74,20 @@ public class OperationServlet extends HttpServlet {
                 DataAccess dataAccess = new DataAccess();
                 OperationBLL optBll = new OperationBLL();
                 String result = optBll.transfer(firstAcc, secondAcc, transferValue, dataAccess.conn).toString();
+                out.write(result);
+            } catch (SQLException ex) {
+                Logger.getLogger(RegisterServlet.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(RegisterServlet.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (operationType == BALANCE_OPERATION) {
+            String agencyBalance = request.getParameter("agencia-saldo").replaceAll("\\D+", "");
+            String accountBalance = request.getParameter("conta-saldo").replaceAll("\\D+", "");
+            Account acc = new Account(agencyBalance, accountBalance);
+            try {
+                DataAccess dataAccess = new DataAccess();
+                OperationBLL optBll = new OperationBLL();
+                String result = optBll.verifyBalance(acc, dataAccess.conn).toString();
                 out.write(result);
             } catch (SQLException ex) {
                 Logger.getLogger(RegisterServlet.class.getName()).log(Level.SEVERE, null, ex);

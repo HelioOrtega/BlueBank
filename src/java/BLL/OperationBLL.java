@@ -16,7 +16,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OperationBLL implements IOperation {
-
+    
+    private final String balanceSql = "SELECT "
+                    + "(SELECT SUM(VALOR) FROM transacao tr "
+                    + "INNER JOIN conta co on tr.idorigem = co.id "
+                    + "WHERE tipo_operacao = 1 and co.agencia = ? and co.numero = ?) "
+                    + "- "
+                    + "(SELECT SUM(VALOR) FROM transacao tr "
+                    + "INNER JOIN conta co on tr.idorigem = co.id "
+                    + "WHERE tipo_operacao = 0 and co.agencia = ? and co.numero = ?) as saldoConta; ";
+    
     @Override
     public Boolean deposit(Account acc, Double value, Connection conn) {
         Boolean isExistent = false;
@@ -67,15 +76,7 @@ public class OperationBLL implements IOperation {
             secondCheckStmt.setInt(2, secondAcc.getNumber());
             ResultSet firstResultSet = firstCheckStmt.executeQuery();
             ResultSet secondResultSet = secondCheckStmt.executeQuery();
-            PreparedStatement balance = conn.prepareStatement("SELECT "
-                    + "(SELECT SUM(VALOR) FROM transacao tr "
-                    + "INNER JOIN conta co on tr.idorigem = co.id "
-                    + "WHERE tipo_operacao = 1 and co.agencia = ? and co.numero = ?) "
-                    + "- "
-                    + "(SELECT SUM(VALOR) FROM transacao tr "
-                    + "INNER JOIN conta co on tr.idorigem = co.id "
-                    + "WHERE tipo_operacao = 0 and co.agencia = ? and co.numero = ?) as saldoConta; "
-            );
+            PreparedStatement balance = conn.prepareStatement(balanceSql);
             balance.setInt(1, firstAcc.getAgency());
             balance.setInt(2, firstAcc.getNumber());
             balance.setInt(3, firstAcc.getAgency());
@@ -105,6 +106,38 @@ public class OperationBLL implements IOperation {
             Logger.getLogger(AccountBLL.class.getName()).log(Level.SEVERE, null, ex);
         }
         return isExistent;
+    }
+
+    @Override
+    public Double verifyBalance(Account acc, Connection conn) {
+        Boolean isExistent = false;
+        PreparedStatement balance = null;
+        Double saldoConta = null;
+        try {
+            PreparedStatement checkStmt = conn.prepareStatement("SELECT agencia, numero FROM conta WHERE agencia = ? OR numero = ?;");
+            checkStmt.setInt(1, acc.getAgency());
+            checkStmt.setInt(2, acc.getNumber());
+            ResultSet rs = checkStmt.executeQuery();
+            if (!rs.next()) {
+                isExistent = true;
+            } else {
+                balance = conn.prepareStatement(balanceSql);
+                balance.setInt(1, acc.getAgency());
+                balance.setInt(2, acc.getNumber());
+                balance.setInt(3, acc.getAgency());
+                balance.setInt(4, acc.getNumber());
+                ResultSet balanceResultSet = balance.executeQuery();
+                if (balanceResultSet.next()) {
+                    saldoConta = balanceResultSet.getDouble("saldoConta");
+                }
+            }
+            checkStmt.close();
+            balance.close();
+            conn.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountBLL.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return saldoConta;
     }
 
 }
